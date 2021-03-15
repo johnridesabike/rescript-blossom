@@ -39,8 +39,8 @@
   },
   "license": "MIT",
   "files": [
-    "src/**/*.re",
-    "src/**/*.rei",
+    "src/**/*.res",
+    "src/**/*.resi",
     "bsconfig.json"
   ],
   "devDependencies": {
