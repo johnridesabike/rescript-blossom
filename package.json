@@ -1,30 +1,29 @@
 {
-  "name": "re-blossom",
+  "name": "rescript-blossom",
   "version": "1.1.0",
-  "description": "A Reason implementation of the blossom maximum-matching algorithm",
+  "description": "A ReScript implementation of the blossom maximum-matching algorithm",
   "scripts": {
     "build": "bsb -make-world",
     "start": "bsb -make-world -w",
+    "start:logger": "RES_LOG=rescript-blossom=* bsb -make-world -w",
     "clean": "bsb -clean-world",
     "pretest": "npm run build",
     "test": "jest",
     "test:watch": "jest --watchAll",
-    "bench": "npm run build && node ./lib/js/__benchmarks__/Node.bs.js",
+    "bench": "npm run build && node ./lib/js/__benchmarks__/Node.js",
     "browser": "serve .",
     "preversion": "npm test",
     "postversion": "git push && git push --tags",
     "docs": "bsb -make-world && bsdoc build Blossom"
   },
   "keywords": [
-    "BuckleScript",
-    "Reason",
-    "ReasonML",
+    "ReScript",
     "Maximum Weighted Matching",
     "Maximum Matching",
     "Matching",
     "Blossom algorithm"
   ],
-  "homepage": "https://johnridesa.bike/re-blossom/",
+  "homepage": "https://johnridesa.bike/rescript-blossom/",
   "author": {
     "name": "John Jackson",
     "email": "johnbicyclejackson@icloud.com",
@@ -32,30 +31,27 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/johnridesabike/re-blossom.git"
+    "url": "https://github.com/johnridesabike/rescript-blossom.git"
   },
   "bugs": {
-    "url": "https://github.com/johnridesabike/re-blossom/issues",
+    "url": "https://github.com/johnridesabike/rescript-blossom/issues",
     "email": "johnbicyclejackson@icloud.com"
   },
   "license": "MIT",
   "files": [
-    "src/**/*.re",
-    "src/**/*.rei",
+    "src/**/*.res",
+    "src/**/*.resi",
     "bsconfig.json"
   ],
-  "peerDependencies": {
-    "bs-platform": "^8.0.2"
-  },
   "devDependencies": {
-    "@glennsl/bs-jest": "^0.5.1",
+    "@glennsl/bs-jest": "^0.6.0",
     "benchmark": "^2.1.4",
-    "bs-platform": "^8.0.2",
+    "bs-platform": "^9.0.2",
     "bsdoc": "^6.0.2-alpha",
     "edmonds-blossom": "^1.0.0",
     "serve": "^11.3.2"
   },
   "dependencies": {
-    "bs-log": "^1.2.0"
+    "rescript-logger": "^2.0.0"
   }
 }

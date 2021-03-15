@@ -1,7 +1,7 @@
-/*******************************************************************************
+/* ******************************************************************************
   MIT License
 
-  Copyright (c) 2020 John Jackson
+  Copyright (c) 2021 John Jackson
 
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -21,13 +21,8 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
   SOFTWARE.
  ******************************************************************************/
-module JsBlossom: {
-  type t = (. array((int, int, float))) => array(int);
-  [@bs.module] external make: t = "edmonds-blossom";
-};
-module BenchmarkJs: {
-  type t;
-  [@bs.module "benchmark"] [@bs.new] external make: string => t = "Suite";
-};
-let make: (BenchmarkJs.t, JsBlossom.t) => unit;
-let default: (BenchmarkJs.t, JsBlossom.t) => unit;
+
+{
+  open Benchmarks
+  make(BenchmarkJs.make("ReScript-Blossom vs JS Blossom"), JsBlossom.make)
+}
