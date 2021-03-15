@@ -23,7 +23,7 @@
     "Matching",
     "Blossom algorithm"
   ],
-  "homepage": "https://johnridesa.bike/re-blossom/",
+  "homepage": "https://johnridesa.bike/rescript-blossom/",
   "author": {
     "name": "John Jackson",
     "email": "johnbicyclejackson@icloud.com",
@@ -31,10 +31,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/johnridesabike/re-blossom.git"
+    "url": "https://github.com/johnridesabike/rescript-blossom.git"
   },
   "bugs": {
-    "url": "https://github.com/johnridesabike/re-blossom/issues",
+    "url": "https://github.com/johnridesabike/rescript-blossom/issues",
     "email": "johnbicyclejackson@icloud.com"
   },
   "license": "MIT",

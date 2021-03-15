@@ -1,14 +1,14 @@
 # ReScript-Blossom 🌺
 
-![GitHub package.json version](https://img.shields.io/github/package-json/v/johnridesabike/re-blossom)
-![Node.js CI](https://github.com/johnridesabike/re-blossom/workflows/Node.js%20CI/badge.svg)
-![GitHub](https://img.shields.io/github/license/johnridesabike/re-blossom)
+![GitHub package.json version](https://img.shields.io/github/package-json/v/johnridesabike/rescript-blossom)
+![Node.js CI](https://github.com/johnridesabike/rescript-blossom/workflows/Node.js%20CI/badge.svg)
+![GitHub](https://img.shields.io/github/license/johnridesabike/rescript-blossom)
 
 ReScript-Blossom is a [ReScript](https://rescript-lang.org/) implementation of the
 famous [blossom algorithm](https://en.wikipedia.org/wiki/Blossom_algorithm). It
 finds a maximum matching of vertices on general, undirected, weighted graphs.
 
-**[📖 Read the documentation](https://johnridesa.bike/re-blossom/)**
+**[📖 Read the documentation](https://johnridesa.bike/rescript-blossom/)**
 
 ## Installation
 
@@ -31,7 +31,7 @@ ReScript-Blossom in the `bs-dependencies`.
 
 Download the code:
 ```sh
-git clone https://github.com/johnridesabike/re-blossom.git
+git clone https://github.com/johnridesabike/rescript-blossom.git
 ```
 If you want to make your own changes, then it's recommended to fork the
 repository on GitHub and clone your forked version.

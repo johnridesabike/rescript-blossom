@@ -26,7 +26,7 @@
 the famous {{: https://en.wikipedia.org/wiki/Blossom_algorithm} blossom algorithm}.
 It finds a maximum matching of vertices on general, undirected, weighted graphs.
 
-{{: https://github.com/johnridesabike/re-blossom} Browse the source.}
+{{: https://github.com/johnridesabike/rescript-blossom} Browse the source.}
 ")
 
 @@text("
@@ -222,7 +222,7 @@ This algorithm passes all of the tests from similar implementations, but hasn't
 seen much real-world use. There may still be failure states that have not been
 discovered yet. The specific dangers are [Failure] exceptions, infinite loops,
 or missing pairings. These should never happen, but, if they do, please
-{{: https://github.com/johnridesabike/re-blossom/issues} file an issue} with
+{{: https://github.com/johnridesabike/rescript-blossom/issues} file an issue} with
 information about your graph.
 
 {1 Interface}
@@ -492,7 +492,7 @@ let comparableToBelt: comparable<'vertex, 'id> => Belt.Id.comparable<'vertex, 'i
 
 {1 Changelog}
 
-{{: https://github.com/johnridesabike/re-blossom/blob/master/CHANGELOG.md} See
+{{: https://github.com/johnridesabike/rescript-blossom/blob/master/CHANGELOG.md} See
 the CHANGELOG.md file.}
 
 {1 Similar packages}
