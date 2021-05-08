@@ -443,13 +443,15 @@ module Label = {
   @ocaml.doc("Label a vertex S and add its inBlossom's children to the queue.")
   let assignS = (~v, ~label, ~queue) => {
     let b = v.fields.inBlossom
-    %log.debug(
-      "assignLabel"
-      ("Vertex", Vertex._debug(v))
-      ("Blossom", Node._debug(b))
-      ("Label", _debug(label))
-      ("PUSH", Node.Leaves._debug(b))
+    /*
+    Js.Console.log("assignLabel")
+    Js.Console.log3(
+      ("Vertex", Vertex._debug(v)),
+      ("Blossom", Node._debug(b)),
+      ("Label", _debug(label)),
     )
+    Js.Console.log2("PUSH", Node.Leaves._debug(b))
+ */
     switch b {
     | Blossom(b) =>
       b.label = label
@@ -469,12 +471,14 @@ module Label = {
    ")
   let assignT = (~v, ~p, ~mates, ~queue, ~cmp) => {
     let b = v.fields.inBlossom
-    %log.debug(
-      "assignLabel"
-      ("Vertex", Vertex._debug(v))
-      ("Blossom", Node._debug(b))
-      ("Label", _debug(T(p)))
+    /*
+    Js.Console.log("assignLabel")
+    Js.Console.log3(
+      ("Vertex", Vertex._debug(v)),
+      ("Blossom", Node._debug(b)),
+      ("Label", _debug(T(p))),
     )
+ */
     let label = T(p)
     switch b {
     | Blossom(b) =>
@@ -820,11 +824,10 @@ module AddBlossom = {
    or an augmenting path.
    ")
   let scanForBlossom = ({i, j, _} as edge) => {
-    %log.debug(
-      "scanBlossom"
-      ("v", Vertex._debug(i))
-      ("w", Vertex._debug(j))
-    )
+    /*
+    Js.Console.log("scanBlossom")
+    Js.Console.log2(("v", Vertex._debug(i)), ("w", Vertex._debug(j)))
+ */
     open ParityList
     let rec aux = (frontPath, backPath) =>
       switch (frontPath, backPath) {
@@ -1070,12 +1073,14 @@ module ModifyBlossom = {
    consistent.
    ")
   let rec augment = (b, v, mates, ~cmp) => {
-    %log.debug(
-      "augmentBlossom"
-      ("Blossom", Blossom._debug(b))
-      ("Vertex", Vertex._debug(v))
-      ("Mates", Mates._debug(mates))
+    /*
+    Js.Console.log("augmentBlossom")
+    Js.Console.log3(
+      ("Blossom", Blossom._debug(b)),
+      ("Vertex", Vertex._debug(v)),
+      ("Mates", Mates._debug(mates)),
     )
+ */
     /* Bubble up through the blossom tree from from the vertex to an immediate
      sub-blossom of `b`. */
     let t = bubbleBlossomTree(Vertex(v), b, v.parent)
@@ -1118,11 +1123,13 @@ module ModifyBlossom = {
         }
         /* Match the edge connecting those sub-blossoms. */
         let mates = Mates.setEdge(mates, Endpoint.toEdge(p), ~cmp)
-        %log.debug(
-          "PAIR"
-          ("v", p->Endpoint.toVertex->Vertex._debug)
-          ("w", p->Endpoint.toReverseVertex->Vertex._debug)
+        /*
+        Js.Console.log("PAIR")
+        Js.Console.log2(
+          ("v", p->Endpoint.toVertex->Vertex._debug),
+          ("w", p->Endpoint.toReverseVertex->Vertex._debug),
         )
+ */
         loopToBase(mates, rest)
       }
     loopToBase(mates, moveList)
@@ -1157,12 +1164,14 @@ module ModifyBlossom = {
     | Endstage => "Endstage"
     | NotEndstage => "Not endstage"
     }
-    %log.debug(
-      "expandBlossom"
-      ("Blossom", Blossom._debug(b))
-      ("Endstage", _debug_endstage)
-      ("Children", Child._debug(b.fields.children))
+    /*
+    Js.Console.log("expandBlossom")
+    Js.Console.log3(
+      ("Blossom", Blossom._debug(b)),
+      ("Endstage", _debug_endstage),
+      ("Children", Child._debug(b.fields.children)),
     )
+ */
     /* Convert sub-blossoms into top-level blossoms. */
     let queue = Odd.reduce(b.fields.children, ~init=queue, ~f=(. queue, child) =>
       switch child.node {
@@ -1457,15 +1466,11 @@ module Substage = {
    of S vertices.
    ")
   let augmentMatching = (edge, mates, ~cmp) => {
-    %log.debug(
-      "augmentMatching"
-      ("v", Vertex._debug(edge.i))
-      ("w", Vertex._debug(edge.j))
-    )
-    %log.debug(
-      "PAIR"
-      ("PAIR", (Vertex._debug(edge.i), Vertex._debug(edge.j)))
-    )
+    /*
+    Js.Console.log("augmentMatching")
+    Js.Console.log2(("v", Vertex._debug(edge.i)), ("w", Vertex._debug(edge.j)))
+    Js.Console.log2("PAIR", (Vertex._debug(edge.i), Vertex._debug(edge.j)))
+ */
     mates
     ->augmentMatchingLoop(~s=edge.i, ~p=J(edge), ~cmp)
     ->augmentMatchingLoop(~s=edge.j, ~p=I(edge), ~cmp)
@@ -1514,16 +1519,15 @@ module Substage = {
                turn it into an S-blossom. */
               | NewBlossom(children) =>
                 let ParityList.Odd({node: _debug_node, _}, _) = children
-                %log.debug(
-                  "addBlossom"
-                  ("base", Node._debug(_debug_node))
-                  ("v", Vertex._debug(edge.i))
-                  ("w", Vertex._debug(edge.j))
+                /*
+                Js.Console.log("addBlossom")
+                Js.Console.log3(
+                  ("base", Node._debug(_debug_node)),
+                  ("v", Vertex._debug(edge.i)),
+                  ("w", Vertex._debug(edge.j)),
                 )
-                %log.debug(
-                  "blossomChildren"
-                  ("children", Child._debug(children))
-                )
+                Js.Console.log2("blossomChildren", Child._debug(children))
+ */
                 let queue = AddBlossom.make(graph, children, queue)
                 aux(~queue, neighbors)
               /* Found an augmenting path; augment the matching and end this
@@ -1587,10 +1591,10 @@ module Substage = {
     switch x {
     | list{} => NotAugmented(list{}, mates)
     | list{vertex, ...queue} =>
-      %log.debug(
-        "POP"
-        ("Vertex", Vertex._debug(vertex))
-      )
+      /*
+      Js.Console.log("POP")
+      Js.Console.log2("Vertex", Vertex._debug(vertex))
+ */
       switch scanNeighbors(~vertex, ~graph, ~mates, ~queue) {
       | NotAugmented(queue, mates) => labelingLoop(graph, mates, queue)
       | Augmented(_) as augmented => augmented
@@ -1598,17 +1602,14 @@ module Substage = {
     }
 
   let rec substage = (graph, queue, mates, cardinality) => {
-    %log.debug("SUBSTAGE")
+    /* Js.Console.log("SUBSTAGE") */
     switch labelingLoop(graph, mates, queue) {
     | NotAugmented(queue, mates) =>
       /* There is no augmenting path under these constraints;
        compute delta and reduce slack in the optimization problem. */
       let delta = Delta.make(~cardinality, ~graph)
       /* Take action at the point where the minimum delta occurred. */
-      %log.debug(
-        "DELTA"
-        ("delta", Delta._debug(delta))
-      )
+      /* Js.Console.log2("DELTA", Delta._debug(delta)) */
       switch delta {
       /* No further improvement possible; optimum reached. */
       | One(delta) =>
@@ -1716,10 +1717,10 @@ let make = (~cardinality=#NotMax, edges, ~id) => {
     if stageNum == graph.vertexSize {
       Belt.Map.packIdData(~id=comparableToBelt(id), ~data=Mates.empty)
     } else {
-      %log.debug(
-        j`STAGE $stageNum`
-        ("Mates", Mates._debug(mates))
-      )
+      /*
+      Js.Console.log(`STAGE $stageNum`)
+      Js.Console.log2("Mates", Mates._debug(mates))
+ */
       /* Each iteration of this loop is a "stage". A stage finds an augmenting
        path and uses that to improve the matching. */
       let queue = resetStage(~graph, ~mates)

@@ -3,10 +3,9 @@
   "version": "2.0.0",
   "description": "A ReScript implementation of the blossom maximum-matching algorithm",
   "scripts": {
-    "build": "bsb -make-world",
-    "start": "bsb -make-world -w",
-    "start:logger": "RES_LOG=rescript-blossom=* bsb -make-world -w",
-    "clean": "bsb -clean-world",
+    "build": "rescript",
+    "start": "rescript build -w",
+    "clean": "rescript clean",
     "pretest": "npm run build",
     "test": "jest",
     "test:watch": "jest --watchAll",
@@ -14,7 +13,7 @@
     "browser": "serve .",
     "preversion": "npm test",
     "postversion": "git push && git push --tags",
-    "docs": "bsb -make-world && bsdoc build Blossom"
+    "docs": "rescript && bsdoc build Blossom"
   },
   "keywords": [
     "ReScript",
@@ -46,12 +45,9 @@
   "devDependencies": {
     "@glennsl/bs-jest": "^0.6.0",
     "benchmark": "^2.1.4",
-    "bs-platform": "^9.0.2",
     "bsdoc": "^6.0.2-alpha",
     "edmonds-blossom": "^1.0.0",
+    "rescript": "^9.1.2",
     "serve": "^11.3.2"
-  },
-  "dependencies": {
-    "rescript-logger": "^2.0.0"
   }
 }

@@ -92,10 +92,10 @@ module BenchmarkJs = {
     target: Benchmark.t,
   }
   type options = {async: bool}
-  @bs.send external add: (t, string, unit => unit) => t = "add"
-  @bs.send
+  @send external add: (t, string, unit => unit) => t = "add"
+  @send
   external on: (t, [#cycle | #start | #complete], event => unit) => t = "on"
-  @bs.send external run: (t, options) => unit = "run"
+  @send external run: (t, options) => unit = "run"
 }
 
 let percentDiff = (a, b) => floor((b -. a) /. b *. 100.)

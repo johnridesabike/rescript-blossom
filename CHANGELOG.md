@@ -1,5 +1,10 @@
 # ReScript-Blossom Changelog
 
+## 3.0
+
+- Replaced bs-platform package with rescript package.
+- Removed rescript-logger.
+
 ## 2.0
 
 - Changed name to rescript-blossom

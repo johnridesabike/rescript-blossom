@@ -22,7 +22,5 @@
   SOFTWARE.
  ******************************************************************************/
 
-{
-  open Benchmarks
-  make(BenchmarkJs.make("ReScript-Blossom vs JS Blossom"), JsBlossom.make)
-}
+open Benchmarks
+make(BenchmarkJs.make("ReScript-Blossom vs JS Blossom"), JsBlossom.make)

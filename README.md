@@ -67,12 +67,6 @@ npm run browser
 ```
 Then open the URL provided and navigate to the `__benchmarks__` directory.
 
-To turn on debug logging, enable [rescript-logger](https://github.com/MinimaHQ/rescript-logger)
-with the `RES_LOG` environmental variable:
-```sh
-RES_LOG=rescript-blossom=* npm run build
-```
-
 This code uses many terms and ideas from
 ["Efficient algorithms for finding maximum matching in graphs" by Zvi Galil, *ACM Computing Surveys*, 1986](https://doi.org/10.1145/6462.6502).
 Reading the paper will make this code much more understandable.
