@@ -4,6 +4,7 @@
 
 - Replaced bs-platform package with rescript package.
 - Removed rescript-logger.
+- Changed license to the Mozilla Public License.
 
 ## 2.0
 

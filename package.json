@@ -36,7 +36,7 @@
     "url": "https://github.com/johnridesabike/rescript-blossom/issues",
     "email": "johnbicyclejackson@icloud.com"
   },
-  "license": "MIT",
+  "license": "MPL-2.0",
   "files": [
     "src/**/*.res",
     "src/**/*.resi",
