@@ -1,5 +1,9 @@
 # ReScript-Blossom Changelog
 
+## 3.1
+
+- Internal: changed the parity list to a GADT.
+
 ## 3.0
 
 - Replaced bs-platform package with rescript package.
