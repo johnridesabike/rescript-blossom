@@ -40,112 +40,87 @@ Performance isn't everything, but regressions should be avoided.
   Part I: The types
 ")
 
-module ParityList = {
-  @ocaml.doc("
-   This works like a linked list, only with the parity enforced.
-   It's used to store each blossom's children. Whether a child is odd or even
-   is significant.
-   ")
-  type rec even<'a> = Empty | Even('a, odd<'a>)
-  and odd<'a> = Odd('a, even<'a>)
+/*
+  The parity list GADT takes two extra type parameters. One is the current 
+  item's parity, and the other is the parity of its neighboring items. The GADT
+  ensures that these types swap at each item, creating the even-odd pattern.
+*/
 
-  module Even = {
-    type t<'a> = even<'a>
+type even
+type odd
 
-    let rec reduce = (~init, ~f, x) =>
-      switch x {
-      | Empty => init
-      | Even(a, Odd(b, tail)) => reduce(tail, ~init=f(. f(. init, a), b), ~f)
+type rec parity_list<_, _, _> =
+  | Nil: parity_list<'a, even, odd>
+  | Cons('a, parity_list<'a, 'q, 'p>): parity_list<'a, 'p, 'q>
+
+module PList = {
+  type t<'a, 'b, 'c> = parity_list<'a, 'b, 'c>
+
+  /*
+  Although our GADT enables a higher level of polymorphism than an ADT parity
+  list, the type checker still cannot append two lists of arbitrary parities
+  and know the parity of the resulting list.
+
+  As long as a and b may be equal parities, then this is unsolvable:
+    a + b = ?
+
+  As long as a and b are *not* equal, then we can prove:
+    a + a = even
+    a + b = odd
+  
+  The following functions are tail recursive.
+ */
+
+  /* Adding any parity to even equals the same parity. */
+  let rec reverse_append_even:
+    type p q. (t<'a, p, q>, t<'a, even, odd>) => t<'a, p, q> =
+    (t, acc) =>
+      switch t {
+      | Nil => acc
+      | Cons(x, Nil) => Cons(x, acc)
+      | Cons(x, Cons(y, t)) => reverse_append_even(t, Cons(y, Cons(x, acc)))
       }
 
-    let reverse = l => {
-      let rec aux = (acc, x) =>
-        switch x {
-        | Empty => acc
-        | Even(a, Odd(b, tail)) => aux(Even(b, Odd(a, acc)), tail)
-        }
-      aux(Empty, l)
-    }
+  let reverse = a => reverse_append_even(a, Nil)
 
-    let concat = (l1, l2) => {
-      let rec aux = (acc, l1, l2) =>
-        switch (l1, l2) {
-        | (Empty, Empty) => reverse(acc)
-        | (Empty as l1, Even(a, Odd(b, l2)))
-        | (Even(a, Odd(b, l1)), l2) =>
-          aux(Even(b, Odd(a, acc)), l1, l2)
-        }
-      aux(Empty, l1, l2)
-    }
-  }
-
-  module Odd = {
-    type t<'a> = odd<'a>
-
-    let one = x => Odd(x, Empty)
-
-    let rec reduce = (~init, ~f, x) =>
-      switch x {
-      | Odd(a, Empty) => f(. init, a)
-      | Odd(a, Even(b, tail)) => reduce(tail, ~init=f(. f(. init, a), b), ~f)
+  /* Adding two of the same parities equals even. */
+  let rec reverse_append_same:
+    type p q. (t<'a, p, q>, t<'a, p, q>) => t<'a, even, odd> =
+    (a, b) =>
+      switch a {
+      | Nil => b
+      | Cons(x, Nil) => Cons(x, b)
+      | Cons(x, Cons(y, a)) => reverse_append_same(a, Cons(y, Cons(x, b)))
       }
 
-    let reverse = (Odd(head, tail)) => {
-      let rec aux = (acc, x) =>
-        switch x {
-        | Empty => acc
-        | Even(a, Odd(b, tail)) => aux(Odd(b, Even(a, acc)), tail)
-        }
-      aux(one(head), tail)
-    }
+  let append_same = (a, b) => reverse_append_same(reverse(a), b)
 
-    let rec forEach = (~f, x) =>
+  /* Adding two opposite parities equals odd. */
+  let append_opp:
+    type p q. (t<'a, p, q>, t<'a, q, p>) => t<'a, odd, even> =
+    (a, b) =>
+      switch a {
+      | Nil => b
+      | Cons(x, a) => Cons(x, append_same(a, b))
+      }
+
+  let rec reduce:
+    type p q. (~init: 'a, ~f: (. 'a, 'b) => 'a, t<'b, p, q>) => 'a =
+    (~init, ~f, x) =>
       switch x {
-      | Odd(a, Empty) => f(. a)
-      | Odd(a, Even(b, tail)) =>
+      | Nil => init
+      | Cons(a, tl) => reduce(tl, ~init=f(. init, a), ~f)
+      }
+
+  let rec forEach:
+    type p q. (~f: (. 'a) => unit, t<'a, p, q>) => unit =
+    (~f, x) =>
+      switch x {
+      | Nil => ()
+      | Cons(a, tl) =>
         f(. a)
-        f(. b)
-        forEach(tail, ~f)
+        forEach(tl, ~f)
       }
-
-    let concat = (l1, l2) => {
-      let rec aux = (acc, x) =>
-        switch x {
-        | Odd(a, Empty) => Even(a, acc)->Even.reverse
-        | Odd(a, Even(b, tail)) => aux(Odd(b, Even(a, acc)), tail)
-        }
-      aux(reverse(l1), l2)
-    }
-
-    let concatEven = (Odd(head, tail), l2) => Odd(head, Even.concat(tail, l2))
-
-    @ocaml.doc("
-     Return the list _up to_, but _not including_, the item where
-     `f(item) == true`, or return `None` if `f` never returns `true`.
-     `f` is only applied to _even_ items.
-     ")
-    let trimTo = (Odd(head, tail), ~f) => {
-      let rec aux = (acc, x) =>
-        switch x {
-        | Even(a, _) if f(. a) => Some(reverse(acc))
-        | Empty => None
-        | Even(a, Odd(b, tail)) => aux(Odd(b, Even(a, acc)), tail)
-        }
-      aux(one(head), tail)
-    }
-
-    @ocaml.doc("
-     Return the list _from_, and _including_, the item where
-     `f(item) == true`, or return `None` if `f` never returns `true`.
-     `f` is only applied to _odd_ items.
-     ")
-    let rec trimFrom = (~f, x) =>
-      switch x {
-      | Odd(a, _) as l if f(. a) => Some(l)
-      | Odd(_, Empty) => None
-      | Odd(_, Even(_, tail)) => trimFrom(tail, ~f)
-      }
-  }
 }
 
 type stage = Endstage | NotEndstage
@@ -222,7 +197,7 @@ and vertex<'v> = basicNode<'v, 'v, vertexFields<'v>>
 and blossomFields<'v> = {
   /* A list of the blossom's sub-blossoms, starting with the base and going
    around the blossom. */
-  mutable children: ParityList.Odd.t<child<'v>>,
+  mutable children: parity_list<child<'v>, odd, even>,
   /* A list of least-slack edges to neighboring S-blossoms. This is used for
    efficient computation of delta3. */
   /* We're using an association list to map nodes to edges. There are
@@ -338,7 +313,7 @@ module Node = {
   let rec baseVertex = x =>
     switch x {
     | Vertex(vertex) => vertex
-    | Blossom({fields: {children: Odd({node, _}, _), _}, _}) => baseVertex(node)
+    | Blossom({fields: {children: Cons({node, _}, _), _}, _}) => baseVertex(node)
     }
 
   let eq = (a, b) =>
@@ -371,7 +346,7 @@ module Node = {
       switch x {
       | Vertex(vertex) => f(. init, vertex)
       | Blossom({fields: {children, _}, _}) =>
-        ParityList.Odd.reduce(children, ~init, ~f=(. init, {node, _}) => reduce(node, ~init, ~f))
+        PList.reduce(children, ~init, ~f=(. init, {node, _}) => reduce(node, ~init, ~f))
       }
 
     let toList = reduce(~f=(. leaves, v) => list{v, ...leaves})
@@ -384,7 +359,7 @@ module Child = {
   type t<'v> = child<'v>
 
   let _debug = c =>
-    ParityList.Odd.reduce(c, ~init=[], ~f=(. acc, {node, endpoint}) =>
+    PList.reduce(c, ~init=[], ~f=(. acc, {node, endpoint}) =>
       Belt.Array.concat(acc, [(Node._debug(node), Endpoint._debug(endpoint))])
     )
 }
@@ -745,7 +720,7 @@ module AddBlossom = {
 
   type scanResult<'v> =
     | AugmentingPath
-    | NewBlossom(ParityList.Odd.t<Child.t<'v>>)
+    | NewBlossom(parity_list<Child.t<'v>, odd, even>)
 
   @ocaml.doc("
    Trace back to the next S-blossom and add the path of blossoms to the list
@@ -760,9 +735,9 @@ module AddBlossom = {
       switch Node.label(w') {
       | Free | SingleS | S(_) => failwith("Label should only be T.")
       | T(p') =>
-        let backChildren = ParityList.Even(
+        let backChildren = Cons(
           {node: w', endpoint: Endpoint.reverse(p')},
-          Odd({node: w, endpoint: Endpoint.reverse(p)}, backChildren),
+          Cons({node: w, endpoint: Endpoint.reverse(p)}, backChildren),
         )
         let nextW = Endpoint.toVertex(p').fields.inBlossom
         FoundChild(nextW, backChildren)
@@ -783,9 +758,9 @@ module AddBlossom = {
       | Free | SingleS | S(_) => failwith("Label should only be T.")
       | T(p') =>
         let lastV = Endpoint.toVertex(p').fields.inBlossom
-        let frontChildren = ParityList.Odd(
+        let frontChildren = Cons(
           {node: lastV, endpoint: p'},
-          Even({node: v', endpoint: p}, frontChildren),
+          Cons({node: v', endpoint: p}, frontChildren),
         )
         FoundChild(lastV, frontChildren)
       }
@@ -795,12 +770,18 @@ module AddBlossom = {
    Scan the found children to see if there's a connecting \"base\" node.
    ")
   let findConnection = (lastV, nextW, front, back) => {
-    open ParityList
-    let children = Odd.concatEven(front, Even.reverse(back))
-    switch Odd.trimTo(children, ~f=(. {node, _}) => Node.eq(node, lastV)) {
-    | None => Odd.trimFrom(children, ~f=(. {node, _}) => Node.eq(node, nextW))
-    | children => children
-    }
+    let rec aux = (acc, t) =>
+      switch t {
+      // If an odd node equals the next w, then return that node and the rest
+      // of the children.
+      | Cons({node, _}, _) as t if Node.eq(node, nextW) => Some(t)
+      // If an even node equals the last v, return the children that came
+      // before it.
+      | Cons(a, Cons({node, _}, _)) if Node.eq(node, lastV) => Some(PList.reverse(Cons(a, acc)))
+      | Cons(_, Nil) => None
+      | Cons(a, Cons(b, tl)) => aux(Cons(b, Cons(a, acc)), tl)
+      }
+    aux(Nil, PList.append_opp(front, PList.reverse(back)))
   }
 
   @ocaml.doc("
@@ -812,7 +793,6 @@ module AddBlossom = {
     Js.Console.log("scanBlossom")
     Js.Console.log2(("v", Vertex._debug(i)), ("w", Vertex._debug(j)))
  */
-    open ParityList
     let rec aux = (frontPath, backPath) =>
       switch (frontPath, backPath) {
       | (DeadEnd(_, _), DeadEnd(_, _)) => AugmentingPath
@@ -845,8 +825,8 @@ module AddBlossom = {
     let initialV = i.fields.inBlossom
     aux(
       /* Manually add the i child to connect the two lists. */
-      FoundChild(initialV, Odd.one({node: initialV, endpoint: I(edge)})),
-      FoundChild(j.fields.inBlossom, Empty),
+      FoundChild(initialV, Cons({node: initialV, endpoint: I(edge)}, Nil)),
+      FoundChild(j.fields.inBlossom, Nil),
     )
   }
 
@@ -908,7 +888,7 @@ module AddBlossom = {
     }
 
   let computeBestEdges = b =>
-    ParityList.Odd.reduce(b.fields.children, ~init=list{}, ~f=(. bestEdgeMap, {node, _}) => {
+    PList.reduce(b.fields.children, ~init=list{}, ~f=(. bestEdgeMap, {node, _}) => {
       let bestEdgeMap = switch node {
       /* This sub-blossom does not have a list of least-slack edges; get
        the information from the vertices. */
@@ -940,7 +920,7 @@ module AddBlossom = {
   let makeBlossom = (graph, children, queue) => {
     let content = graph.nextBlossom
     graph.nextBlossom = succ(content)
-    let ParityList.Odd({node: baseNode, _}, _) = children
+    let Cons({node: baseNode, _}, _) = children
     let b = {
       content: content,
       parent: None,
@@ -952,7 +932,7 @@ module AddBlossom = {
         blossomBestEdges: list{},
       },
     }
-    ParityList.Odd.forEach(children, ~f=(. {node, _}) =>
+    PList.forEach(children, ~f=(. {node, _}) =>
       switch node {
       | Vertex(v) => v.parent = Some(b)
       | Blossom(b') => b'.parent = Some(b)
@@ -999,47 +979,46 @@ module AddBlossom = {
 }
 
 module ModifyBlossom = {
-  open ParityList
   /* When augmenting or expanding a blossom, we'll need to separate the base
      child, the "entry" child, and the list of children between them. Whether
      the entry child was odd or even will determine whether we move forward or
      backward when processing the children. */
   type splitChildren<'v> =
-    | NoSplit({base: Child.t<'v>, rest: Even.t<Child.t<'v>>})
+    | NoSplit({base: Child.t<'v>, rest: parity_list<Child.t<'v>, even, odd>})
     | GoForward({
         base: Child.t<'v>,
-        front: Even.t<Child.t<'v>>,
+        front: parity_list<Child.t<'v>, even, odd>,
         entry: Child.t<'v>,
-        back: Odd.t<Child.t<'v>>,
+        back: parity_list<Child.t<'v>, odd, even>,
       })
     | GoBackward({
         base: Child.t<'v>,
-        front: Odd.t<Child.t<'v>>,
+        front: parity_list<Child.t<'v>, odd, even>,
         entry: Child.t<'v>,
-        back: Even.t<Child.t<'v>>,
+        back: parity_list<Child.t<'v>, even, odd>,
       })
 
   @ocaml.doc("
    Remove the base child and split the remaining children into two lists, one
    before and one and after the entry child.
    ")
-  let splitChildren = (Odd(base, rest), entryChild) => {
+  let splitChildren = (Cons(base, rest), entryChild) => {
     let rec aux = (front, back) =>
       switch back {
-      | Empty if Node.eq(base.node, entryChild) => NoSplit({base: base, rest: rest})
-      | Empty => failwith("Entry child not found.")
-      | Even(child, back) if Node.eq(child.node, entryChild) =>
-        GoForward({base: base, front: Even.reverse(front), entry: child, back: back})
-      | Even(child, Odd(child', back)) if Node.eq(child'.node, entryChild) =>
+      | Nil if Node.eq(base.node, entryChild) => NoSplit({base: base, rest: rest})
+      | Nil => failwith("Entry child not found.")
+      | Cons(child, back) if Node.eq(child.node, entryChild) =>
+        GoForward({base: base, front: PList.reverse(front), entry: child, back: back})
+      | Cons(child, Cons(child', back)) if Node.eq(child'.node, entryChild) =>
         GoBackward({
           base: base,
-          front: Odd(child, front)->Odd.reverse,
+          front: Cons(child, front)->PList.reverse,
           entry: child',
           back: back,
         })
-      | Even(child, Odd(child', back)) => aux(Even(child', Odd(child, front)), back)
+      | Cons(child, Cons(child', back)) => aux(Cons(child', Cons(child, front)), back)
       }
-    aux(Empty, rest)
+    aux(Nil, rest)
   }
 
   let rec bubbleBlossomTree = (node, b, x) =>
@@ -1075,24 +1054,24 @@ module ModifyBlossom = {
     }
     /* Figure out how we'll go 'round the blossom. */
     let (moveList, direction, children) = switch splitChildren(b.fields.children, t) {
-    | NoSplit(_) => (Empty, Backward, b.fields.children)
+    | NoSplit(_) => (Nil, Backward, b.fields.children)
     | GoForward({base, front, entry, back}) =>
-      let moveList = Odd.concat(back, Odd.one(base))
+      let moveList = PList.append_same(back, Cons(base, Nil))
       /* Rotate the list of sub-blossoms to put the new base at the front. */
-      let children = Odd(entry, Odd.concat(back, Odd(base, front)))
+      let children = Cons(entry, PList.append_same(back, Cons(base, front)))
       (moveList, Forward, children)
     | GoBackward({base, front, entry, back}) =>
-      let moveList = Even(base, front)->Even.reverse
+      let moveList = Cons(base, front)->PList.reverse
       /* Rotate the list of sub-blossoms to put the new base at the front. */
-      let children = Odd(entry, Even.concat(back, Even(base, front)))
+      let children = Cons(entry, PList.append_same(back, Cons(base, front)))
       (moveList, Backward, children)
     }
     b.fields.children = children
     let rec loopToBase = (mates, x) =>
       switch x {
-      | Empty => mates
+      | Nil => mates
       /* Step into the next two sub-blossoms and augment them recursively. */
-      | Even(child, Odd(child', rest)) =>
+      | Cons(child, Cons(child', rest)) =>
         let p = switch direction {
         | Forward => child.endpoint
         | Backward => Endpoint.reverse(child'.endpoint)
@@ -1121,8 +1100,8 @@ module ModifyBlossom = {
 
   let rec relabelToBase = (nextEndpoint, queue, mates, direction, ~cmp, x) =>
     switch x {
-    | Odd(_, Empty) => (nextEndpoint, queue)
-    | Odd({endpoint, _}, Even({endpoint: endpoint', _}, rest)) =>
+    | Cons(_, Nil) => (nextEndpoint, queue)
+    | Cons({endpoint, _}, Cons({endpoint: endpoint', _}, rest)) =>
       Endpoint.toEdge(endpoint).allowable = Allowed
       Endpoint.toEdge(endpoint').allowable = Allowed
       let queue = Label.assignT(
@@ -1135,7 +1114,7 @@ module ModifyBlossom = {
       let nextEndpoint = switch direction {
       | Forward => endpoint'
       | Backward =>
-        let Odd({endpoint, _}, _) = rest
+        let Cons({endpoint, _}, _) = rest
         Endpoint.reverse(endpoint)
       }
       Endpoint.toEdge(nextEndpoint).allowable = Allowed
@@ -1157,7 +1136,7 @@ module ModifyBlossom = {
     )
  */
     /* Convert sub-blossoms into top-level blossoms. */
-    let queue = Odd.reduce(b.fields.children, ~init=queue, ~f=(. queue, child) =>
+    let queue = PList.reduce(b.fields.children, ~init=queue, ~f=(. queue, child) =>
       switch child.node {
       | Vertex(v) as vertex =>
         v.fields.inBlossom = vertex
@@ -1200,7 +1179,7 @@ module ModifyBlossom = {
           mates,
           Forward,
           ~cmp,
-          Odd(entry, Odd.concat(back, Odd.one(base))),
+          Cons(entry, PList.append_same(back, Cons(base, Nil))),
         )
         (base.node, endpoint, front, queue)
       | GoBackward({base, front, entry, back}) =>
@@ -1210,7 +1189,7 @@ module ModifyBlossom = {
           mates,
           Backward,
           ~cmp,
-          Odd(entry, Even(base, front)->Even.reverse),
+          Cons(entry, Cons(base, front)->PList.reverse),
         )
         (base.node, endpoint, back, queue)
       }
@@ -1223,7 +1202,7 @@ module ModifyBlossom = {
       Label.assignTSingle(~w=base, ~p)
       Label.assignTSingleVertex(~v=Endpoint.toReverseVertex(p), ~p)
       /* Continue along the blossom until we get to the entry child. */
-      Even.reduce(childrenToEntryChild, ~init=queue, ~f=(. queue, child) =>
+      PList.reduce(childrenToEntryChild, ~init=queue, ~f=(. queue, child) =>
         switch /* Examine the vertices of the sub-blossom to see whether it is
              reachable from a neighboring S-vertex outside the expanding
              blossom. */
@@ -1502,8 +1481,8 @@ module Substage = {
               /* Found a new blossom; add it to the blossom bookkeeping and
                turn it into an S-blossom. */
               | NewBlossom(children) =>
-                let ParityList.Odd({node: _debug_node, _}, _) = children
                 /*
+                let Cons({node: _debug_node, _}, _) = children
                 Js.Console.log("addBlossom")
                 Js.Console.log3(
                   ("base", Node._debug(_debug_node)),
