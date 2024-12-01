@@ -276,8 +276,8 @@ module Make = (
   type t = M.t
   let cmp = M.cmp
   let convertEdge = ((i, j, w)) => (M.ofInt(i), M.ofInt(j), w)
-  let data = Belt.List.map(Int.data, l => Belt.List.map(l, convertEdge))
-  module Cmp = Belt.Id.MakeComparable(M)
+  let data = List.map(Int.data, l => List.map(l, convertEdge))
+  module Cmp = Belt.Id.MakeComparableU(M)
 }
 
 module String = Make({
@@ -374,4 +374,4 @@ module PersonType = {
 module Person = Make(PersonType);
 */
 
-let default = () => Belt.List.forEachU(Int.data, (. data) => Match.Int.make(data))
+let default = () => List.forEach(Int.data, (data) => Match.Int.make(data)->ignore)

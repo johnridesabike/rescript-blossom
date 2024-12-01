@@ -7,16 +7,15 @@
     "start": "rescript build -w",
     "clean": "rescript clean",
     "pretest": "npm run build",
-    "test": "jest",
-    "test:watch": "jest --watchAll",
-    "bench": "npm run build && node ./lib/js/__benchmarks__/Node.js",
+    "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
+    "test:watch": "npm test -- --watchAll",
+    "bench": "npm run build && node ./lib/js/__benchmarks__/Node.res.cjs",
     "browser": "serve .",
     "preversion": "npm test",
-    "postversion": "git push && git push --tags",
-    "docs": "rescript && bsdoc build Blossom"
+    "postversion": "git push && git push --tags"
   },
   "keywords": [
-    "ReScript",
+    "rescript",
     "Maximum Weighted Matching",
     "Maximum Matching",
     "Matching",
@@ -37,17 +36,19 @@
     "email": "johnbicyclejackson@icloud.com"
   },
   "license": "MPL-2.0",
+  "type": "module",
   "files": [
     "src/**/*.res",
     "src/**/*.resi",
-    "bsconfig.json"
+    "rescript.json"
   ],
   "devDependencies": {
-    "@glennsl/bs-jest": "^0.6.0",
+    "@glennsl/rescript-jest": "^0.11.0",
+    "@rescript/core": "^1.6.1",
     "benchmark": "^2.1.4",
-    "bsdoc": "^6.0.2-alpha",
     "edmonds-blossom": "^1.0.0",
-    "rescript": "^9.1.2",
-    "serve": "^11.3.2"
+    "jest": "^29.7.0",
+    "rescript": "^11.1.4",
+    "serve": "^14.2.4"
   }
 }

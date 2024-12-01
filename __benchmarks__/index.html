@@ -31,7 +31,7 @@
     <script src="../node_modules/edmonds-blossom/app/blossom.js"></script>
     <script type="module">
       var jsBlossom = module.exports;
-      import runBenchmark from "../lib/es6_global/__benchmarks__/Benchmarks.js";
+      import runBenchmark from "../lib/es6/__benchmarks__/Benchmarks.res.mjs";
 
       function benchmark(event) {
         event.preventDefault();
@@ -41,7 +41,7 @@
 
       document.querySelector("#benchmark").onclick = benchmark;
 
-      import basicTest from "../lib/es6_global/__benchmarks__/BenchData.js";
+      import basicTest from "../lib/es6/__benchmarks__/BenchData.res.mjs";
 
       function clicky(event) {
         event.preventDefault();

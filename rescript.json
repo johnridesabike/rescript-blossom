@@ -18,17 +18,18 @@
   "package-specs": [
     {
       "module": "commonjs",
-      "in-source": false
+      "in-source": false,
+      "suffix": ".res.cjs"
     },
     {
-      "module": "es6-global",
-      "in-source": false
+      "module": "esmodule",
+      "in-source": false,
+      "suffix": ".res.mjs"
     }
   ],
-  "suffix": ".js",
-  "bs-dependencies": [],
-  "bs-dev-dependencies": ["@glennsl/bs-jest"],
-  "ppx-flags": [],
+  "bs-dependencies": ["@rescript/core"],
+  "bs-dev-dependencies": ["@glennsl/rescript-jest"],
+  "bsc-flags": ["-open RescriptCore"],
   "warnings": {
     "number": "+A-48",
     "error": "+A-3-44-102"

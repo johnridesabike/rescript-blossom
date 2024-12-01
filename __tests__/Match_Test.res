@@ -1,3 +1,5 @@
+@@uncurried
+
 @@text("
 Copyright (c) 2021 John Jackson
 
@@ -8,127 +10,137 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 open Jest
 open Expect
 
-let sortResult = (l, ~compare) => Belt.List.sortU(l, (. (a, _), (b, _)) => compare(a, b))
+let sortResult = (l, ~compare) => Belt.List.sortU(l, ((a, _), (b, _)) => compare(a, b))
 
-let sortResultU = (l, ~compare) => Belt.List.sortU(l, (. (a, _), (b, _)) => compare(. a, b))
+let sortResultU = (l, ~compare) => Belt.List.sortU(l, ((a, _), (b, _)) => compare(a, b))
 
-describe("Trivial cases", () => {
+describe("Trivial cases", (.) => {
   test("Empty input graph", () =>
-    Match.Int.make(list{}) |> Match.toList |> expect |> toEqual(list{})
+    Match.Int.make(list{})
+    -> Match.toList
+    -> expect
+    -> toEqual(list{})
   )
+
   test("Single edge", () =>
-    Match.Int.make(list{(0, 1, 1.)})
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(0, 1), (1, 0)})
+    Match.Int.make(list{(0, 1, 1.)}) 
+    -> Match.toList 
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(0, 1), (1, 0)})
   )
+
   test("Two edges", () =>
     Match.Int.make(list{(1, 2, 10.), (2, 3, 11.)})
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(2, 3), (3, 2)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(2, 3), (3, 2)})
   )
+
   test("Three edges", () =>
     Match.Int.make(list{(1, 2, 5.), (2, 3, 11.), (3, 4, 5.)})
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(2, 3), (3, 2)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect -> toEqual(list{(2, 3), (3, 2)})
   )
+
   test("Three edges again, with IDs ordered differently", () =>
     Match.Int.make(list{(1, 2, 5.), (2, 3, 11.), (4, 3, 5.)})
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(2, 3), (3, 2)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect -> toEqual(list{(2, 3), (3, 2)})
   )
-  test("A simple love triangle", () =>
-    Match.Int.make(list{(0, 1, 6.), (0, 2, 10.), (1, 2, 5.)})
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(0, 2), (2, 0)})
-  )
-  test("Maximum cardinality", () =>
-    Match.Int.make(list{(1, 2, 5.), (2, 3, 11.), (3, 4, 5.)}, ~cardinality=#Max)
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 2), (2, 1), (3, 4), (4, 3)})
-  )
-  test("Floating point weights", () =>
-    Match.Int.make(list{
-      (1, 2, Js.Math._PI),
-      (2, 3, Js.Math.exp(1.)),
-      (1, 3, 3.0),
-      (1, 4, Js.Math.sqrt(2.0)),
-    })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 4), (2, 3), (3, 2), (4, 1)})
-  )
-  describe("Negative weights", () => {
-    test("Negative weights", () =>
-      Match.Int.make(list{(1, 2, 2.), (1, 3, -2.), (2, 3, 1.), (2, 4, -1.), (3, 4, -6.)})
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{(1, 2), (2, 1)})
-    )
 
-    test("Negative weights with maximum cardinality", () =>
+  test("A simple love triangle", () => {
+    Match.Int.make(list{(0, 1, 6.), (0, 2, 10.), (1, 2, 5.)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(0, 2), (2, 0)})
+  })
+
+  test("Maximum cardinality", () => {
+    Match.Int.make(list{(1, 2, 5.), (2, 3, 11.), (3, 4, 5.)}, ~cardinality=#Max)
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 2), (2, 1), (3, 4), (4, 3)})
+  })
+
+  test("Floating point weights", () => {
+    Match.Int.make(list{
+        (1, 2, Math.Constants.pi),
+        (2, 3, Math.exp(1.)),
+        (1, 3, 3.0),
+        (1, 4, Math.sqrt(2.0)),
+      })
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 4), (2, 3), (3, 2), (4, 1)})
+  })
+
+  describe("Negative weights", () => {
+    test("Negative weights", () => {
+      Match.Int.make(list{(1, 2, 2.), (1, 3, -2.), (2, 3, 1.), (2, 4, -1.), (3, 4, -6.)})
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{(1, 2), (2, 1)})
+    })
+
+    test("Negative weights with maximum cardinality", () => {
       Match.Int.make(
         ~cardinality=#Max,
         list{(1, 2, 2.), (1, 3, -2.), (2, 3, 1.), (2, 4, -1.), (3, 4, -6.)},
       )
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{(1, 3), (2, 4), (3, 1), (4, 2)})
-    )
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{(1, 3), (2, 4), (3, 1), (4, 2)})
+    })
   })
 })
+
 describe("Blossoms", () => {
   describe("create S-blossom and use it for augmentation.", () => {
     test("S-blossom A", () =>
       Match.Int.make(list{(1, 2, 8.), (1, 3, 9.), (2, 3, 10.), (3, 4, 7.)})
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{(1, 2), (2, 1), (3, 4), (4, 3)})
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{(1, 2), (2, 1), (3, 4), (4, 3)})
     )
     test("S-blossom B", () =>
       Match.Int.make(list{(1, 2, 8.), (1, 3, 9.), (2, 3, 10.), (3, 4, 7.), (1, 6, 5.), (4, 5, 6.)})
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{(1, 6), (2, 3), (3, 2), (4, 5), (5, 4), (6, 1)})
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{(1, 6), (2, 3), (3, 2), (4, 5), (5, 4), (6, 1)})
     )
   })
   describe("Create S-blossom, relabel as T-blossom, use for augmentation.", () => {
     test("S-blossom, relabel as T-blossom: A", () =>
       Match.Int.make(list{(1, 2, 9.), (1, 3, 8.), (2, 3, 10.), (1, 4, 5.), (4, 5, 4.), (1, 6, 3.)})
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{(1, 6), (2, 3), (3, 2), (4, 5), (5, 4), (6, 1)})
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{(1, 6), (2, 3), (3, 2), (4, 5), (5, 4), (6, 1)})
     )
     test("S-blossom, relabel as T-blossom: B", () =>
       Match.Int.make(list{(1, 2, 9.), (1, 3, 8.), (2, 3, 10.), (1, 4, 5.), (4, 5, 3.), (1, 6, 4.)})
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{(1, 6), (2, 3), (3, 2), (4, 5), (5, 4), (6, 1)})
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{(1, 6), (2, 3), (3, 2), (4, 5), (5, 4), (6, 1)})
     )
     test("S-blossom, relabel as T-blossom: C", () =>
       Match.Int.make(list{(1, 2, 9.), (1, 3, 8.), (2, 3, 10.), (1, 4, 5.), (4, 5, 3.), (3, 6, 4.)})
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{(1, 2), (2, 1), (3, 6), (4, 5), (5, 4), (6, 3)})
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{(1, 2), (2, 1), (3, 6), (4, 5), (5, 4), (6, 3)})
     )
   })
   test("Create nested S-blossom, use for augmentation.", () =>
@@ -141,10 +153,10 @@ describe("Blossoms", () => {
       (4, 5, 10.),
       (5, 6, 6.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 3), (2, 4), (3, 1), (4, 2), (5, 6), (6, 5)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 3), (2, 4), (3, 1), (4, 2), (5, 6), (6, 5)})
   )
   test("Create S-blossom, relabel as S, include in nested S-blossom.", () =>
     Match.Int.make(list{
@@ -158,10 +170,10 @@ describe("Blossoms", () => {
       (6, 7, 10.),
       (7, 8, 8.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 2), (2, 1), (3, 4), (4, 3), (5, 6), (6, 5), (7, 8), (8, 7)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 2), (2, 1), (3, 4), (4, 3), (5, 6), (6, 5), (7, 8), (8, 7)})
   )
   test("Create nested S-blossom, augment, expand recursively.", () =>
     Match.Int.make(list{
@@ -176,10 +188,10 @@ describe("Blossoms", () => {
       (6, 7, 14.),
       (7, 8, 12.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 2), (2, 1), (3, 5), (4, 6), (5, 3), (6, 4), (7, 8), (8, 7)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 2), (2, 1), (3, 5), (4, 6), (5, 3), (6, 4), (7, 8), (8, 7)})
   )
   test("Create S-blossom, relabel as T, expand.", () =>
     Match.Int.make(list{
@@ -192,10 +204,10 @@ describe("Blossoms", () => {
       (4, 8, 14.),
       (5, 7, 13.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 6), (2, 3), (3, 2), (4, 8), (5, 7), (6, 1), (7, 5), (8, 4)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 6), (2, 3), (3, 2), (4, 8), (5, 7), (6, 1), (7, 5), (8, 4)})
   )
   test("Create nested S-blossom, relabel as T, expand.", () =>
     Match.Int.make(list{
@@ -209,10 +221,10 @@ describe("Blossoms", () => {
       (4, 7, 7.),
       (5, 6, 7.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 8), (2, 3), (3, 2), (4, 7), (5, 6), (6, 5), (7, 4), (8, 1)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 8), (2, 3), (3, 2), (4, 7), (5, 6), (6, 5), (7, 4), (8, 1)})
   )
 })
 describe("Nasty cases", () => {
@@ -229,10 +241,10 @@ describe("Nasty cases", () => {
       (5, 7, 26.),
       (9, 10, 5.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{
       (1, 6),
       (2, 3),
       (3, 2),
@@ -258,10 +270,10 @@ describe("Nasty cases", () => {
       (5, 7, 40.),
       (9, 10, 5.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{
       (1, 6),
       (2, 3),
       (3, 2),
@@ -289,10 +301,10 @@ describe("Nasty cases", () => {
         (5, 7, 26.),
         (9, 10, 5.),
       })
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{
         (1, 6),
         (2, 3),
         (3, 2),
@@ -323,10 +335,10 @@ describe("Nasty cases", () => {
         (7, 10, 26.),
         (11, 12, 5.),
       })
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{
         (1, 8),
         (2, 3),
         (3, 2),
@@ -356,10 +368,10 @@ describe("Nasty cases", () => {
         (8, 10, 10.),
         (4, 9, 30.),
       })
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{
         (1, 2),
         (2, 1),
         (3, 5),
@@ -387,10 +399,10 @@ describe("Nasty cases", () => {
         (4, 9, 30.),
         (11, 10, 100.),
       })
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{
         (1, 8),
         (2, 3),
         (3, 2),
@@ -418,10 +430,10 @@ describe("Nasty cases", () => {
         (4, 9, 30.),
         (3, 6, 36.),
       })
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{
         (1, 2),
         (2, 1),
         (3, 6),
@@ -454,10 +466,10 @@ describe("More nasty cases", () => {
       (2, 1, 55.),
       (1, 0, 43.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(0, 1), (1, 0), (2, 5), (3, 4), (4, 3), (5, 2), (6, 7), (7, 6), (8, 9), (9, 8)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(0, 1), (1, 0), (2, 5), (3, 4), (4, 3), (5, 2), (6, 7), (7, 6), (8, 9), (9, 8)})
   )
   test("Blossom with five children (B).", () =>
     Match.Int.make(list{
@@ -476,10 +488,10 @@ describe("More nasty cases", () => {
       (5, 4, 55.),
       (4, 10, 30.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 3), (2, 4), (3, 1), (4, 2), (5, 8), (7, 9), (8, 5), (9, 7)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 3), (2, 4), (3, 1), (4, 2), (5, 8), (7, 9), (8, 5), (9, 7)})
   )
   test("Scan along a long label path to create a blossom.", () =>
     Match.Int.make(list{
@@ -496,10 +508,10 @@ describe("More nasty cases", () => {
       (2, 8, 55.),
       (8, 7, 30.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{
       (1, 2),
       (2, 1),
       (3, 6),
@@ -524,10 +536,10 @@ describe("Input tests", () => {
       (3, 1, 9000.),
       (3, 4, 7.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(1, 2), (2, 1), (3, 4), (4, 3)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(1, 2), (2, 1), (3, 4), (4, 3)})
   )
   test("Non-sequential and negative integers.", () =>
     Match.Int.make(list{
@@ -543,10 +555,10 @@ describe("Input tests", () => {
       (8, 10, 10.),
       (-420, 9, 30.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{
       (-420, 9),
       (-69, 69),
       (5, 420),
@@ -580,10 +592,10 @@ describe("Input tests", () => {
           (-7, -10, 26.),
           (-11, -12, 5.),
         })
-        |> Match.toList
-        |> sortResult(~compare)
-        |> expect
-        |> toEqual(list{
+        -> Match.toList
+        -> sortResult(~compare)
+        -> expect
+        -> toEqual(list{
           (-12, -11),
           (-11, -12),
           (-10, -7),
@@ -611,18 +623,18 @@ describe("Input tests", () => {
         (3, 2, 14.),
         (2, 1, 12.),
       })
-      |> Match.toList
-      |> sortResult(~compare)
-      |> expect
-      |> toEqual(list{(1, 2), (2, 1), (3, 5), (4, 6), (5, 3), (6, 4), (7, 8), (8, 7)})
+      -> Match.toList
+      -> sortResult(~compare)
+      -> expect
+      -> toEqual(list{(1, 2), (2, 1), (3, 5), (4, 6), (5, 3), (6, 4), (7, 8), (8, 7)})
     )
   })
   test("Vertices with edges on themselves are silently ignored.", () =>
     Match.Int.make(list{(0, 1, 1.), (1, 1, 9001.)})
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{(0, 1), (1, 0)})
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{(0, 1), (1, 0)})
   )
   test("String vertices", () =>
     Match.String.make(list{
@@ -640,10 +652,10 @@ describe("Input tests", () => {
       ("Gabriel", "Gabriel", 100.),
       ("Gabriel", "Andrew", 100.),
     })
-    |> Match.toList
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{
+    -> Match.toList
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{
       ("Andrew", "Gabriel"),
       ("Gabriel", "Andrew"),
       ("James", "Paul"),
@@ -697,7 +709,7 @@ describe("Input tests", () => {
        *         Joseph ------ 55 ----- Mark ----30---- James  *
        ******************************************************* */
       Match.make(
-        ~id=module(Match.MakeComparable(Person)),
+        ~id=module(Match.MakeComparableU(Person)),
         list{
           (Person.Mary, Joseph, 40.),
           (Mary, Matthew, 40.),
@@ -712,10 +724,10 @@ describe("Input tests", () => {
           (Mark, James, 30.),
         },
       )
-      |> Match.toList
-      |> sortResult(~compare=Person.cmp)
-      |> expect
-      |> toEqual(list{
+      -> Match.toList
+      -> sortResult(~compare=Person.cmp)
+      -> expect
+      -> toEqual(list{
         (Person.Mary, Person.Joseph),
         (Joseph, Mary),
         (Matthew, Luke),
@@ -760,7 +772,7 @@ describe("Input tests", () => {
         let cmp = (a, b) => compare(toString(a), toString(b))
       }
       Match.make(
-        ~id=module(Match.MakeComparable(Person)),
+        ~id=module(Match.MakeComparableU(Person)),
         list{
           (Person.Mary, Joseph, 9.),
           (Mary, Matthew, 9.),
@@ -773,10 +785,10 @@ describe("Input tests", () => {
           (Luke, John, 100.),
         },
       )
-      |> Match.toList
-      |> sortResult(~compare=Person.cmp)
-      |> expect
-      |> toEqual(list{
+      -> Match.toList
+      -> sortResult(~compare=Person.cmp)
+      -> expect
+      -> toEqual(list{
         (Person.John, Person.Luke),
         (Joseph, Mark),
         (Luke, John),
@@ -803,10 +815,10 @@ describe("Input tests", () => {
         ~id=module(Match.MakeComparableU(Person)),
         list{(Person.Mary, Joseph, 40.), (Mary, Matthew, 30.), (Joseph, Matthew, 20.)},
       )
-      |> Match.toList
-      |> sortResultU(~compare=Person.cmp)
-      |> expect
-      |> toEqual(list{(Person.Mary, Person.Joseph), (Joseph, Mary)})
+      -> Match.toList
+      -> sortResultU(~compare=Person.cmp)
+      -> expect
+      -> toEqual(list{(Person.Mary, Person.Joseph), (Joseph, Mary)})
     })
     test("Variants and reusing a Belt.Id module.", () => {
       module Person = {
@@ -822,15 +834,15 @@ describe("Input tests", () => {
           }
         let cmp = (a, b) => compare(toInt(a), toInt(b))
       }
-      module PersonCmp = Belt.Id.MakeComparable(Person)
+      module PersonCmp = Belt.Id.MakeComparableU(Person)
       Match.make(
         ~id=Match.unsafeComparableFromBelt(~id=module(PersonCmp), ~cmp=Person.cmp),
         list{(Person.Mary, Joseph, 40.), (Mary, Matthew, 30.), (Joseph, Matthew, 20.)},
       )
-      |> Match.toList
-      |> sortResult(~compare=Person.cmp)
-      |> expect
-      |> toEqual(list{(Person.Mary, Person.Joseph), (Joseph, Mary)})
+      -> Match.toList
+      -> sortResult(~compare=Person.cmp)
+      -> expect
+      -> toEqual(list{(Person.Mary, Person.Joseph), (Joseph, Mary)})
     })
     test("Again, with an uncurried cmp function.", () => {
       module Person = {
@@ -851,10 +863,10 @@ describe("Input tests", () => {
         ~id=Match.unsafeComparableFromBeltU(~id=module(PersonCmp), ~cmp=Person.cmp),
         list{(Person.Mary, Joseph, 40.), (Mary, Matthew, 30.), (Joseph, Matthew, 20.)},
       )
-      |> Match.toList
-      |> sortResultU(~compare=Person.cmp)
-      |> expect
-      |> toEqual(list{(Person.Mary, Person.Joseph), (Joseph, Mary)})
+      -> Match.toList
+      -> sortResultU(~compare=Person.cmp)
+      -> expect
+      -> toEqual(list{(Person.Mary, Person.Joseph), (Joseph, Mary)})
     })
     test("Variant constructors", () => {
       module StringOrInt = {
@@ -886,10 +898,10 @@ describe("Input tests", () => {
           (Int(4), String("d"), 30.),
         },
       )
-      |> Match.toList
-      |> sortResult(~compare=StringOrInt.cmp)
-      |> expect
-      |> toEqual(list{
+      -> Match.toList
+      -> sortResult(~compare=StringOrInt.cmp)
+      -> expect
+      -> toEqual(list{
         (StringOrInt.Int(1), StringOrInt.Int(2)),
         (Int(2), Int(1)),
         (Int(3), Int(5)),
@@ -918,13 +930,13 @@ describe("Output tests", () => {
     (8, 10, 10.),
     (4, 9, 30.),
   })
-  test("get", () => Match.get(result, 5) |> expect |> toBe(Some(3)))
-  test("get None", () => Match.get(result, 69) |> expect |> toBe(None))
+  test("get", () => Match.get(result, 5) -> expect -> toBe(Some(3)))
+  test("get None", () => Match.get(result, 69) -> expect -> toBe(None))
   test("toList", () =>
     Match.toList(result)
-    |> sortResult(~compare)
-    |> expect
-    |> toEqual(list{
+    -> sortResult(~compare)
+    -> expect
+    -> toEqual(list{
       (1, 2),
       (2, 1),
       (3, 5),
@@ -946,22 +958,22 @@ describe("Output tests", () => {
       ),
       \"=",
     )
-    |> expect
-    |> toBe(true)
+    -> expect
+    -> toBe(true)
   )
   test("forEach", () => {
-    let arr = Array.make(11, -1)
+    let arr = Array.make(~length=11, -1)
     Match.forEach(result, ~f=(v1, v2) => ignore(arr[v1] = v2))
-    expect(arr) |> toEqual([-1, 2, 1, 5, 9, 3, 7, 6, 10, 4, 8])
+    expect(arr) -> toEqual([-1, 2, 1, 5, 9, 3, 7, 6, 10, 4, 8])
   })
-  test("isEmpty", () => Match.isEmpty(result) |> expect |> toBe(false))
-  test("has", () => Match.has(result, 5) |> expect |> toBe(true))
+  test("isEmpty", () => Match.isEmpty(result) -> expect -> toBe(false))
+  test("has", () => Match.has(result, 5) -> expect -> toBe(true))
   test("reduce", () =>
     Match.reduce(result, ~init="", ~f=(acc, v1, v2) =>
-      "(" ++ (Belt.Int.toString(v1) ++ (", " ++ (Belt.Int.toString(v2) ++ ("), " ++ acc))))
+      "(" ++ (Int.toString(v1) ++ (", " ++ (Int.toString(v2) ++ ("), " ++ acc))))
     )
-    |> expect
-    |> toBe(
+    -> expect
+    -> toBe(
       "(10, 8), (9, 4), (8, 10), (7, 6), (6, 7), (5, 3), (4, 9), (3, 5), " ++ "(2, 1), (1, 2), ",
     )
   )
@@ -973,17 +985,17 @@ describe("Brute force any missed edge cases (slow)", () =>
       (
         () =>
           Belt.Range.forEach(0, 1023, _ =>
-            Belt.List.makeBy(63, _ => (
-              Js.Math.random_int(0, 15),
-              Js.Math.random_int(0, 15),
-              Js.Math.random() *. 100.,
+            List.fromInitializer(~length=63, _ => (
+              Math.Int.random(0, 15),
+              Math.Int.random(0, 15),
+              Math.random() *. 100.,
             ))
-            |> Match.Int.make
-            |> ignore
+            -> Match.Int.make
+            -> ignore
           )
       )
-      |> expect
-      |> not_
-      |> toThrow,
+      -> expect
+      -> not_
+      -> toThrow,
   )
 )
