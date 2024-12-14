@@ -1,5 +1,10 @@
 # ReScript-Blossom Changelog
 
+## 4.0
+
+- Migrate to Rescript 11 uncurried mode
+- Add dependency on @rescript/core
+
 ## 3.0
 
 - Replaced bs-platform package with rescript package.
@@ -12,9 +17,11 @@
 - Converted Reason to ReScript syntax.
 
 ## 1.1.1
+
 - Improved documentation.
 
 ## 1.1
+
 - Replaced `Belt.Id.comparable` with a custom `comparable` type.
 - Added `Match.MakeComparable` and `Match.MakeComparableU` functors.
 - Added `Match.comparable` and `Match.comparableU` functions.
@@ -34,7 +41,7 @@
 
 ## 1.0.7
 
-- Updated the function that scans for potential blossoms. It is now more robust 
+- Updated the function that scans for potential blossoms. It is now more robust
   and can handle more complex paths.
 - Fixed a crash on some graphs.
 
@@ -61,4 +68,3 @@
 ## 1.0.1
 
 - Initial release.
-
