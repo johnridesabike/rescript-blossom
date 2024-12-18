@@ -21,7 +21,7 @@ You can add ReScript-Blossom to your project by running:
   npm install rescript-blossom
 ]}
 
-You will need to edit your project's [bsconfig.json] file and list
+You will need to edit your project's [rescript.json] file and list
 ReScript-Blossom in the [bs-dependencies].
 
 {[
@@ -316,7 +316,7 @@ let reduceU: (t<'vertex, 'id>, ~init: 'acc, ~f: (. 'acc, 'vertex, 'vertex) => 'a
   Iterates over the pairs of vertex mates. Each pair is used twice, once in
   each order.
 
-  {[Blossom.Match.forEach(result, ~f=(v1, v2) => Js.log2(v1, v2))]}
+  {[Blossom.Match.forEach(result, ~f=(v1, v2) => Math.log2(v1, v2))]}
  ")
 let forEach: (t<'vertex, 'id>, ~f: ('vertex, 'vertex) => unit) => unit
 
@@ -327,7 +327,7 @@ let forEach: (t<'vertex, 'id>, ~f: ('vertex, 'vertex) => unit) => unit
   Takes an uncurried [f] function.
 
 
-  {[Blossom.Match.forEachU(result, ~f=(. v1, v2) => Js.log2(v1, v2))]}
+  {[Blossom.Match.forEachU(result, ~f=(. v1, v2) => Math.log2(v1, v2))]}
  ")
 let forEachU: (t<'vertex, 'id>, ~f: (. 'vertex, 'vertex) => unit) => unit
 

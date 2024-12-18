@@ -5,7 +5,6 @@ This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at http://mozilla.org/MPL/2.0/.
 ")
-open Belt
 
 module JsBlossom = {
   type t = (. array<(int, int, float)>) => array<int>
@@ -20,15 +19,15 @@ module JsBlossom = {
   let makeKeys: (
     list<('v, 'v, float)>,
     Belt.Id.comparable<'v, 'identity>,
-  ) => (Map.Int.t<'v>, Map.t<'v, int, 'identity>) = (inputArray, id) => {
-    let emptyMap = Map.make(~id)
-    let emptySet = Set.make(~id)
+  ) => (Belt.Map.Int.t<'v>, Belt.Map.t<'v, int, 'identity>) = (inputArray, id) => {
+    let emptyMap = Belt.Map.make(~id)
+    let emptySet = Belt.Set.make(~id)
     let (intMap, vertexMap, _) = /* Make a set of unique vertices. */
-    List.reduceU(inputArray, emptySet, (. acc, (i, j, _w)) => acc->Set.add(i)->Set.add(j))
+    Belt.List.reduceU(inputArray, emptySet, (. acc, (i, j, _w)) => acc->Belt.Set.add(i)->Belt.Set.add(j))
     /* Map them to integer indices */
-    ->Set.reduceU((Map.Int.empty, emptyMap, 0), (. (intMap, strMap, index), x) => (
-      Map.Int.set(intMap, index, x),
-      Map.set(strMap, x, index),
+    ->Belt.Set.reduceU((Belt.Map.Int.empty, emptyMap, 0), (. (intMap, strMap, index), x) => (
+      Belt.Map.Int.set(intMap, index, x),
+      Belt.Map.set(strMap, x, index),
       succ(index),
     ))
     (intMap, vertexMap)
@@ -36,15 +35,15 @@ module JsBlossom = {
 
   let graphToIntGraph: (
     list<('v, 'v, float)>,
-    Map.t<'v, int, 'identity>,
+    Belt.Map.t<'v, int, 'identity>,
   ) => array<(int, int, float)> = (inputArray, strMap) =>
-    List.reduceU(inputArray, [], (. acc, (i, j, w)) =>
-      Array.concat(acc, [(Map.getExn(strMap, i), Map.getExn(strMap, j), w)])
+    Belt.List.reduceU(inputArray, [], (. acc, (i, j, w)) =>
+      Belt.Array.concat(acc, [(Belt.Map.getExn(strMap, i), Belt.Map.getExn(strMap, j), w)])
     )
 
-  let intResultToResult: (array<int>, Map.Int.t<'v>) => list<('v, 'v)> = (inputArray, intMap) =>
-    Array.reduceWithIndexU(inputArray, list{}, (. acc, x, y) => list{
-      (Map.Int.getExn(intMap, x), Map.Int.getExn(intMap, y)),
+  let intResultToResult: (array<int>, Belt.Map.Int.t<'v>) => list<('v, 'v)> = (inputArray, intMap) =>
+    Belt.Array.reduceWithIndexU(inputArray, list{}, (. acc, x, y) => list{
+      (Belt.Map.Int.getExn(intMap, x), Belt.Map.Int.getExn(intMap, y)),
       ...acc,
     })
 }
@@ -67,7 +66,7 @@ module BenchmarkJs = {
     }
   }
   module Suite = {
-    type t = Js.Dict.t<Benchmark.t>
+    type t = Dict.t<Benchmark.t>
     @get external name: t => string = "name"
     @get external length: t => int = "length"
   }
@@ -85,7 +84,7 @@ module BenchmarkJs = {
 let percentDiff = (a, b) => floor((b -. a) /. b *. 100.)
 
 let formatResult = ({BenchmarkJs.Benchmark.name: name, hz, _}, maxHz) => (
-  percentDiff(hz, maxHz)->Js.String.make ++ "% slower",
+  percentDiff(hz, maxHz)->String.make ++ "% slower",
   name,
 )
 
@@ -93,49 +92,49 @@ let make = (suite, jsBlossom) => {
   open BenchmarkJs
   suite
   ->add("ReScript-Blossom: Integers", () =>
-    List.forEachU(BenchData.Int.data, (. x) => Match.Int.make(x))
+    List.forEach(BenchData.Int.data, (x) => Match.Int.make(x) -> ignore)
   )
   ->add("JS Blossom: Integers", () =>
-    List.forEachU(BenchData.Int.data, (. x) => jsBlossom(. List.toArray(x)))
+    List.forEach(BenchData.Int.data, (x) => jsBlossom(List.toArray(x)) -> ignore)
   )
   ->add("ReScript-Blossom: Strings ", () =>
-    List.forEachU(BenchData.String.data, (. x) => Match.String.make(x))
+    List.forEach(BenchData.String.data, (x) => Match.String.make(x) -> ignore)
   )
   ->add("JS Blossom: Strings ", () =>
-    List.forEachU(BenchData.String.data, (. x) => {
+    List.forEach(BenchData.String.data, (. x) => {
       let (intMap, vertexMap) = JsBlossom.makeKeys(x, module(BenchData.String.Cmp))
       let y = JsBlossom.graphToIntGraph(x, vertexMap)
       let mates = jsBlossom(. y)
-      JsBlossom.intResultToResult(mates, intMap)
+      JsBlossom.intResultToResult(mates, intMap) -> ignore
     })
   )
   ->on(#start, ({currentTarget, _}) => {
-    Js.Console.info("Beginning benchmark")
-    Js.Console.info2("name", currentTarget->Suite.name)
-    Js.Console.info2("tests", currentTarget->Suite.length)
+    Console.info("Beginning benchmark")
+    Console.info2("name", currentTarget->Suite.name)
+    Console.info2("tests", currentTarget->Suite.length)
   })
-  ->on(#cycle, ({target, _}) => Js.Console.info(target->Js.String.make))
+  ->on(#cycle, ({target, _}) => Console.info(target->String.make))
   ->on(#complete, ({currentTarget, _}) => {
     open Benchmark
     let results =
       currentTarget
       ->Suite.length
-      ->List.makeBy(x => Js.String.make(x))
-      ->List.keepMap(Js.Dict.get(currentTarget))
-      ->List.sort((a, b) => compare(b.hz, a.hz))
+      ->Belt.List.makeBy(x => String.make(x))
+      ->Belt.List.keepMap(Dict.get(currentTarget, ...))
+      ->Belt.List.sort((a, b) => compare(b.hz, a.hz))
     switch results {
-    | list{} => Js.Console.info("No results? :(")
+    | list{} => Console.info("No results? :(")
     | list{first, second, third, fourth} =>
-      Js.Console.info("Percenage comparison")
-      Js.Console.info(("Fastest", first.name))
-      Js.Console.info(formatResult(second, first.hz))
-      Js.Console.info(formatResult(third, first.hz))
-      Js.Console.info(formatResult(fourth, first.hz))
+      Console.info("Percenage comparison")
+      Console.info(("Fastest", first.name))
+      Console.info(formatResult(second, first.hz))
+      Console.info(formatResult(third, first.hz))
+      Console.info(formatResult(fourth, first.hz))
     | list{{name, hz: maxHz, _}, ...results} =>
-      Js.log("  Fastest  : " ++ name)
-      List.forEach(results, result => formatResult(result, maxHz)->Js.log)
+      Console.log("  Fastest  : " ++ name)
+      List.forEach(results, result => formatResult(result, maxHz)->Console.log)
     }
-    Js.Console.info("Done")
+    Console.info("Done")
   })
   ->run({async: true})
 }
