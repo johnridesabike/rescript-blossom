@@ -23,12 +23,12 @@ module JsBlossom = {
     let emptyMap = Belt.Map.make(~id)
     let emptySet = Belt.Set.make(~id)
     let (intMap, vertexMap, _) = /* Make a set of unique vertices. */
-    Belt.List.reduceU(inputArray, emptySet, (. acc, (i, j, _w)) => acc->Belt.Set.add(i)->Belt.Set.add(j))
+    Belt.List.reduce(inputArray, emptySet, (. acc, (i, j, _w)) => acc->Belt.Set.add(i)->Belt.Set.add(j))
     /* Map them to integer indices */
-    ->Belt.Set.reduceU((Belt.Map.Int.empty, emptyMap, 0), (. (intMap, strMap, index), x) => (
+    ->Belt.Set.reduce((Belt.Map.Int.empty, emptyMap, 0), (. (intMap, strMap, index), x) => (
       Belt.Map.Int.set(intMap, index, x),
       Belt.Map.set(strMap, x, index),
-      succ(index),
+      index + 1,
     ))
     (intMap, vertexMap)
   }
@@ -37,12 +37,12 @@ module JsBlossom = {
     list<('v, 'v, float)>,
     Belt.Map.t<'v, int, 'identity>,
   ) => array<(int, int, float)> = (inputArray, strMap) =>
-    Belt.List.reduceU(inputArray, [], (. acc, (i, j, w)) =>
+    Belt.List.reduce(inputArray, [], (. acc, (i, j, w)) =>
       Belt.Array.concat(acc, [(Belt.Map.getExn(strMap, i), Belt.Map.getExn(strMap, j), w)])
     )
 
   let intResultToResult: (array<int>, Belt.Map.Int.t<'v>) => list<('v, 'v)> = (inputArray, intMap) =>
-    Belt.Array.reduceWithIndexU(inputArray, list{}, (. acc, x, y) => list{
+    Belt.Array.reduceWithIndex(inputArray, list{}, (. acc, x, y) => list{
       (Belt.Map.Int.getExn(intMap, x), Belt.Map.Int.getExn(intMap, y)),
       ...acc,
     })
@@ -81,7 +81,7 @@ module BenchmarkJs = {
   @send external run: (t, options) => unit = "run"
 }
 
-let percentDiff = (a, b) => floor((b -. a) /. b *. 100.)
+let percentDiff = (a, b) => Math.floor((b -. a) /. b *. 100.)
 
 let formatResult = ({BenchmarkJs.Benchmark.name: name, hz, _}, maxHz) => (
   percentDiff(hz, maxHz)->String.make ++ "% slower",

@@ -10,9 +10,9 @@ file, You can obtain one at http://mozilla.org/MPL/2.0/.
 open Jest
 open Expect
 
-let sortResult = (l, ~compare) => Belt.List.sortU(l, ((a, _), (b, _)) => compare(a, b))
+let sortResult = (l, ~compare) => Belt.List.sort(l, ((a, _), (b, _)) => compare(a, b))
 
-let sortResultU = (l, ~compare) => Belt.List.sortU(l, ((a, _), (b, _)) => compare(a, b))
+let sortResultU = (l, ~compare) => Belt.List.sort(l, ((a, _), (b, _)) => compare(a, b))
 
 describe("Trivial cases", (.) => {
   test("Empty input graph", () =>
@@ -709,7 +709,7 @@ describe("Input tests", () => {
        *         Joseph ------ 55 ----- Mark ----30---- James  *
        ******************************************************* */
       Match.make(
-        ~id=module(Match.MakeComparableU(Person)),
+        ~id=module(Match.MakeComparable(Person)),
         list{
           (Person.Mary, Joseph, 40.),
           (Mary, Matthew, 40.),
@@ -772,7 +772,7 @@ describe("Input tests", () => {
         let cmp = (a, b) => compare(toString(a), toString(b))
       }
       Match.make(
-        ~id=module(Match.MakeComparableU(Person)),
+        ~id=module(Match.MakeComparable(Person)),
         list{
           (Person.Mary, Joseph, 9.),
           (Mary, Matthew, 9.),
@@ -812,7 +812,7 @@ describe("Input tests", () => {
         let cmp = (. a, b) => compare(toInt(a), toInt(b))
       }
       Match.make(
-        ~id=module(Match.MakeComparableU(Person)),
+        ~id=module(Match.MakeComparable(Person)),
         list{(Person.Mary, Joseph, 40.), (Mary, Matthew, 30.), (Joseph, Matthew, 20.)},
       )
       -> Match.toList
@@ -834,7 +834,7 @@ describe("Input tests", () => {
           }
         let cmp = (a, b) => compare(toInt(a), toInt(b))
       }
-      module PersonCmp = Belt.Id.MakeComparableU(Person)
+      module PersonCmp = Belt.Id.MakeComparable(Person)
       Match.make(
         ~id=Match.unsafeComparableFromBelt(~id=module(PersonCmp), ~cmp=Person.cmp),
         list{(Person.Mary, Joseph, 40.), (Mary, Matthew, 30.), (Joseph, Matthew, 20.)},
@@ -858,7 +858,7 @@ describe("Input tests", () => {
           }
         let cmp = (. a, b) => compare(toInt(a), toInt(b))
       }
-      module PersonCmp = Belt.Id.MakeComparableU(Person)
+      module PersonCmp = Belt.Id.MakeComparable(Person)
       Match.make(
         ~id=Match.unsafeComparableFromBeltU(~id=module(PersonCmp), ~cmp=Person.cmp),
         list{(Person.Mary, Joseph, 40.), (Mary, Matthew, 30.), (Joseph, Matthew, 20.)},
@@ -956,7 +956,7 @@ describe("Output tests", () => {
         ~id=Match.comparableToBelt(module(Match.Int.Cmp)),
         [(1, 2), (2, 1), (3, 5), (4, 9), (5, 3), (6, 7), (7, 6), (8, 10), (9, 4), (10, 8)],
       ),
-      \"=",
+      \"===",
     )
     -> expect
     -> toBe(true)

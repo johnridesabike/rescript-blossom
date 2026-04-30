@@ -1,5 +1,10 @@
 # ReScript-Blossom Changelog
 
+## 5.0
+
+- Migrate to Rescript 12
+- Remove dependency on @rescript/core
+
 ## 4.0
 
 - Migrate to Rescript 11 uncurried mode

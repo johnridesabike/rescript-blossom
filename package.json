@@ -4,7 +4,7 @@
   "description": "A ReScript implementation of the blossom maximum-matching algorithm",
   "scripts": {
     "build": "rescript",
-    "start": "rescript build -w",
+    "start": "rescript watch",
     "clean": "rescript clean",
     "pretest": "npm run build",
     "test": "node --experimental-vm-modules ./node_modules/jest/bin/jest.js",
@@ -43,12 +43,11 @@
     "rescript.json"
   ],
   "devDependencies": {
-    "@glennsl/rescript-jest": "^0.11.0",
-    "@rescript/core": "^1.6.1",
+    "@glennsl/rescript-jest": "^0.13.1",
     "benchmark": "^2.1.4",
     "edmonds-blossom": "^1.0.0",
-    "jest": "^29.7.0",
-    "rescript": "^11.1.4",
-    "serve": "^14.2.4"
+    "jest": "^30.3.0",
+    "rescript": "^12.2.0",
+    "serve": "^14.2.6"
   }
 }

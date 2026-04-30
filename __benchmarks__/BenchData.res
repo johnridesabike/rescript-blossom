@@ -277,7 +277,7 @@ module Make = (
   let cmp = M.cmp
   let convertEdge = ((i, j, w)) => (M.ofInt(i), M.ofInt(j), w)
   let data = List.map(Int.data, l => List.map(l, convertEdge))
-  module Cmp = Belt.Id.MakeComparableU(M)
+  module Cmp = Belt.Id.MakeComparable(M)
 }
 
 module String = Make({

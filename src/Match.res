@@ -409,7 +409,7 @@ module Mates = {
   let exportEndpoint = p => Endpoint.toVertex(p).content
 
   let _debug = mates =>
-    Belt.Map.Dict.reduceU(mates, list{}, (acc, a, b) => list{
+    Belt.Map.Dict.reduce(mates, list{}, (acc, a, b) => list{
       (a, exportEndpoint(b)),
       ...acc,
     })->List.toArray
@@ -623,7 +623,7 @@ module Graph = {
               ~edges=list{edge, ...edges},
               ~edgeSet,
               ~vertices=list{j, ...vertices},
-              ~vertexSize=succ(vertexSize),
+              ~vertexSize=vertexSize + 1,
               ~vertexMap=Belt.Map.Dict.set(vertexMap, jContent, j, ~cmp),
               ~maxWeight,
             )
@@ -646,7 +646,7 @@ module Graph = {
               ~edges=list{edge, ...edges},
               ~edgeSet,
               ~vertices=list{i, ...vertices},
-              ~vertexSize=succ(vertexSize),
+              ~vertexSize=vertexSize + 1,
               ~vertexMap=Belt.Map.Dict.set(vertexMap, iContent, i, ~cmp),
               ~maxWeight,
             )
@@ -679,7 +679,7 @@ module Graph = {
               ~edges=list{edge, ...edges},
               ~edgeSet,
               ~vertices=list{i, j, ...vertices},
-              ~vertexSize=vertexSize->succ->succ,
+              ~vertexSize=vertexSize + 2,
               ~vertexMap=vertexMap
               ->Belt.Map.Dict.set(iContent, i, ~cmp)
               ->Belt.Map.Dict.set(jContent, j, ~cmp),
@@ -939,7 +939,7 @@ module AddBlossom = {
    ")
   let makeBlossom = (graph, children, queue) => {
     let content = graph.nextBlossom
-    graph.nextBlossom = succ(content)
+    graph.nextBlossom = content + 1
     let ParityList.Odd({node: baseNode, _}, _) = children
     let b = {
       content: content,
@@ -1715,7 +1715,7 @@ let make = (~cardinality=#NotMax, edges, ~id) => {
       | Augmented(mates) =>
         /* End of a stage; expand all S-blossoms which have `dualVar` = 0. */
         expandAllSBlossoms(~graph, ~mates, ~queue)
-        aux(mates, succ(stageNum))
+        aux(mates, stageNum + 1)
       }
     }
   aux(Mates.empty, 0)
@@ -1728,19 +1728,19 @@ let get = (mates, v) =>
   }
 
 let reduceU = (mates, ~init, ~f) =>
-  Belt.Map.reduceU(mates, init, (acc, v1, p) => f(acc, v1, Mates.exportEndpoint(p)))
+  Belt.Map.reduce(mates, init, (acc, v1, p) => f(acc, v1, Mates.exportEndpoint(p)))
 
 let reduce = (mates, ~init, ~f) => reduceU(mates, ~init, ~f=(acc, v1, v2) => f(acc, v1, v2))
 
 let forEachU = (mates, ~f) =>
-  Belt.Map.forEachU(mates, (v1, p) => f(v1, Mates.exportEndpoint(p)))
+  Belt.Map.forEach(mates, (v1, p) => f(v1, Mates.exportEndpoint(p)))
 
 let forEach = (mates, ~f) => forEachU(mates, ~f=(v1, v2) => f(v1, v2))
 
 let toList = mates =>
-  Belt.Map.reduceU(mates, list{}, (acc, v, p) => list{(v, Mates.exportEndpoint(p)), ...acc})
+  Belt.Map.reduce(mates, list{}, (acc, v, p) => list{(v, Mates.exportEndpoint(p)), ...acc})
 
-let toMap = mates => Belt.Map.mapU(mates, (mate) => Mates.exportEndpoint(mate))
+let toMap = mates => Belt.Map.map(mates, (mate) => Mates.exportEndpoint(mate))
 
 let isEmpty = m => Belt.Map.isEmpty(m)
 
@@ -1759,7 +1759,7 @@ module UnsafeComparableFromBeltU = (
   type t = BeltCmp.t
   type identity = BeltCmp.identity
   let cmp = M.cmp
-  module K = Belt.Id.MakeComparableU({
+  module K = Belt.Id.MakeComparable({
     type t = RawEdge.t<BeltCmp.t>
     let cmp = RawEdge.makeCmp(cmp, ...)
   })
@@ -1796,7 +1796,7 @@ module MakeComparableU = (
   },
 ) => UnsafeComparableFromBeltU({
   let cmp = M.cmp
-  module Cmp = Belt.Id.MakeComparableU(M)
+  module Cmp = Belt.Id.MakeComparable(M)
 })
 
 module MakeComparable = (
@@ -1810,7 +1810,7 @@ module MakeComparable = (
     (a, b) => cmp(a, b)
   }
   /* This will uncurry `cmp` twice but preserve the module path. */
-  module Cmp = Belt.Id.MakeComparableU(M)
+  module Cmp = Belt.Id.MakeComparable(M)
 })
 
 let comparable = (type v, cmp): module(Comparable with type t = v) =>

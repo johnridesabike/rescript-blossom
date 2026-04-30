@@ -27,9 +27,9 @@
       "suffix": ".res.mjs"
     }
   ],
-  "bs-dependencies": ["@rescript/core"],
-  "bs-dev-dependencies": ["@glennsl/rescript-jest"],
-  "bsc-flags": ["-open RescriptCore"],
+  "dependencies": [],
+  "dev-dependencies": ["@glennsl/rescript-jest"],
+  "compiler-flags": [],
   "warnings": {
     "number": "+A-48",
     "error": "+A-3-44-102"
